@@ -1,11 +1,11 @@
 [
   {
-    "modid": "${modid}",
-    "name": "Xample Mod",
-    "description": "A mod that is used as an example.",
+    "modid": "ApostlesBridge",
+    "name": "Apostles Bridge",
+    "description": "A bridge connecting minecraft instances and discord.",
     "version": "${version}",
     "mcversion": "${mcversion}",
-    "url": "https://github.com/romangraef/Forge1.8.9Template/",
+    "url": "https://github.com/Medua7/ApostlesBridge",
     "updateUrl": "",
     "authorList": [
       "You"
