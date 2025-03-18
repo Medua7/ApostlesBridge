@@ -88,6 +88,8 @@ dependencies {
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.1")
 
     implementation("org.java-websocket:Java-WebSocket:1.5.3")
+
+    shadowImpl("org.java-websocket:Java-WebSocket:1.5.3")
 }
 
 // Tasks:
@@ -139,6 +141,9 @@ tasks.shadowJar {
     destinationDirectory.set(layout.buildDirectory.dir("intermediates"))
     archiveClassifier.set("non-obfuscated-with-deps")
     configurations = listOf(shadowImpl)
+
+    relocate("org.java_websocket", "$baseGroup.websocket")
+
     doLast {
         configurations.forEach {
             println("Copying dependencies into mod: ${it.files}")
