@@ -23,7 +23,7 @@ public class WebSocketHandler {
     private Timer reconnectTimer;
     private static final int RECONNECT_DELAY = 30_000;
 
-    private String sessionKey = "";
+    private String authKey = "";
 
     ApostlesBridge apostlesBridge;
 
@@ -78,9 +78,9 @@ public class WebSocketHandler {
                         if (json.has("type")) {
                             String messageType = json.get("type").getAsString();
 
-                            if (messageType.equals("sessionKey")) {
-                                sessionKey = json.get("sessionKey").getAsString();
-                                LOGGER.debug("Received new session-key: " + sessionKey);
+                            if (messageType.equals("authKey")) {
+                                authKey = json.get("authKey").getAsString();
+                                LOGGER.debug("Received new auth-key: " + authKey);
                                 restartWebSocket();
                             } else if (messageType.equals("message") && json.has("messageData")) {
                                 JsonObject messageData = json.getAsJsonObject("messageData");
@@ -158,7 +158,7 @@ public class WebSocketHandler {
         String username = Minecraft.getMinecraft().thePlayer.getName();
         String uuid = Minecraft.getMinecraft().thePlayer.getUniqueID().toString();
 
-        return "ws://" + Config.getURL() + "?token=" + token + "&sessionKey=" + sessionKey + "&username=" + username + "&uuid=" + uuid;
+        return "ws://" + Config.getURL() + "?token=" + token + "&authKey=" + authKey + "&username=" + username + "&uuid=" + uuid;
     }
 
     private synchronized void scheduleReconnect() {
@@ -187,7 +187,7 @@ public class WebSocketHandler {
 
     public synchronized void restartWebSocket(boolean clearSession) {
         if (clearSession) {
-            sessionKey = "";
+            authKey = "";
         }
 
         if (reconnectTimer != null) {

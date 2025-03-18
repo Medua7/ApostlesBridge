@@ -31,7 +31,7 @@ public class PlayerJoinEvent {
                     MessageHandler.sendSpacerMessage();
                     MessageHandler.sendMessage("§c§lATTENTION", false);
                     MessageHandler.sendMessage("§cThere is no info set for Apostles Bridge.", false);
-                    MessageHandler.sendMessage("§cUse §4/apostles §cto set one", false);
+                    MessageHandler.sendMessage("§cUse §4/apostles §cor §4/bridge §cto set one", false);
                     MessageHandler.sendSpacerMessage();
                 }
             }

@@ -11,6 +11,9 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class ApostlesCommand extends CommandBase {
 
     ApostlesBridge apostlesBridge;
@@ -21,6 +24,11 @@ public class ApostlesCommand extends CommandBase {
     @Override
     public String getCommandName() {
         return "apostles";
+    }
+
+    @Override
+    public List<String> getCommandAliases() {
+        return Arrays.asList("apostlesbridge", "bridge");
     }
 
     @Override
