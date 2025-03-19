@@ -1,8 +1,6 @@
 package com.github.medua7.apostlesbridge.handler;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.*;
 import com.github.medua7.apostlesbridge.ApostlesBridge;
 import com.github.medua7.apostlesbridge.config.Config;
 import net.minecraft.client.Minecraft;
@@ -12,6 +10,8 @@ import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -87,9 +87,17 @@ public class WebSocketHandler {
                                 String origin = messageData.has("origin") ? messageData.get("origin").getAsString() : "";
                                 String originLongname = messageData.has("originLongname") ? messageData.get("originLongname").getAsString() : "";
                                 String message = messageData.has("message") ? messageData.get("message").getAsString() : "";
+                                JsonArray images = messageData.has("images") ? messageData.get("images").getAsJsonArray() : new JsonArray();
+                                List<String> imageList = new ArrayList<>();
+
+                                for (JsonElement element : images) {
+                                    if (element.isJsonPrimitive() && element.getAsJsonPrimitive().isString()) {
+                                        imageList.add(element.getAsString());
+                                    }
+                                }
 
                                 if (Config.getGuild().isEmpty() || (!origin.equals(Config.getGuild()) && !originLongname.equals(Config.getGuild()))) {
-                                    MessageHandler.sendMessage(message, false);
+                                    MessageHandler.sendMessageWithImages(message, false, imageList);
                                 }
                             }
                         }
