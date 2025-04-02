@@ -1,5 +1,8 @@
 package com.github.medua7.apostlesbridge.handler;
 
+import com.github.medua7.apostlesbridge.config.ConfigUtil;
+import com.github.medua7.apostlesbridge.config.Ignored;
+import com.github.medua7.apostlesbridge.config.IgnoredType;
 import com.google.gson.*;
 import com.github.medua7.apostlesbridge.ApostlesBridge;
 import com.github.medua7.apostlesbridge.config.Config;
@@ -7,6 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.spongepowered.asm.mixin.transformer.debug.RuntimeDecompiler;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -22,6 +26,7 @@ public class WebSocketHandler {
 
     private Timer reconnectTimer;
     private static final int RECONNECT_DELAY = 30_000;
+    private boolean reconnectScheduled = false;
 
     private String authKey = "";
 
@@ -84,9 +89,19 @@ public class WebSocketHandler {
                                 restartWebSocket();
                             } else if (messageType.equals("message") && json.has("messageData")) {
                                 JsonObject messageData = json.getAsJsonObject("messageData");
+                                String username = messageData.has("username") ? messageData.get("username").getAsString() : "";
                                 String origin = messageData.has("origin") ? messageData.get("origin").getAsString() : "";
                                 String originLongname = messageData.has("originLongname") ? messageData.get("originLongname").getAsString() : "";
                                 String message = messageData.has("message") ? messageData.get("message").getAsString() : "";
+                                String unformattedMessage = messageData.has("unformattedMessage") ? messageData.get("unformattedMessage").getAsString() : "";
+
+                                Ignored ignoredPlayer = new Ignored(username, IgnoredType.PLAYER);
+                                Ignored ignoredOrigin = new Ignored(originLongname, IgnoredType.ORIGIN);
+
+                                if (Config.isIgnored(ignoredPlayer) || Config.isIgnored(ignoredOrigin)) {
+                                    return;
+                                }
+
                                 JsonArray images = messageData.has("images") ? messageData.get("images").getAsJsonArray() : new JsonArray();
                                 List<String> imageList = new ArrayList<>();
 
@@ -96,8 +111,17 @@ public class WebSocketHandler {
                                     }
                                 }
 
-                                if (Config.getGuild().isEmpty() || (!origin.equals(Config.getGuild()) && !originLongname.equals(Config.getGuild()))) {
-                                    MessageHandler.sendMessageWithImages(message, false, imageList);
+                                if (Config.getGuild().isEmpty() || (!origin.equalsIgnoreCase(Config.getGuild()) && !originLongname.equalsIgnoreCase(Config.getGuild()))) {
+                                    String outputMessage = message;
+                                    if (!unformattedMessage.isEmpty()) {
+                                        outputMessage = unformattedMessage;
+                                        outputMessage = outputMessage.replace("%originColor%", Config.getFormattingColors().getOriginColor());
+                                        outputMessage = outputMessage.replace("%origin%", ConfigUtil.getOriginReplacement(origin));
+                                        outputMessage = outputMessage.replaceAll("%userColor%", Config.getFormattingColors().getUserColor());
+                                        outputMessage = outputMessage.replace("%messageColor%", Config.getFormattingColors().getMessageColor());
+                                    }
+
+                                    MessageHandler.sendMessageWithImages(outputMessage, false, imageList);
                                 }
                             }
                         }
@@ -176,9 +200,11 @@ public class WebSocketHandler {
         }
 
         reconnectTimer = new Timer();
+        reconnectScheduled = true;
         reconnectTimer.schedule(new TimerTask() {
             @Override
             public void run() {
+                reconnectScheduled = false;
                 if (shouldConnect()) {
                     LOGGER.info("Reconnecting to WebSocket...");
                     restartWebSocket();
@@ -187,6 +213,14 @@ public class WebSocketHandler {
                 }
             }
         }, RECONNECT_DELAY);
+    }
+
+    public String getStatus() {
+        if (webSocketClient != null && webSocketClient.isOpen()) {
+            return "§aCONNECTED§r";
+        } else {
+            return "§cDISCONNECTED§r" + (reconnectScheduled ? " §7(⟳ in a moment)§r" : "");
+        }
     }
 
     public synchronized void restartWebSocket() {

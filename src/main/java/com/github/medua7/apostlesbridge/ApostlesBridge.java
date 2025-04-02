@@ -3,6 +3,7 @@ package com.github.medua7.apostlesbridge;
 import com.github.medua7.apostlesbridge.commands.ApostlesCommand;
 import com.github.medua7.apostlesbridge.config.Config;
 import com.github.medua7.apostlesbridge.events.PlayerJoinEvent;
+import com.github.medua7.apostlesbridge.events.PlayerLoggedInEvent;
 import com.github.medua7.apostlesbridge.handler.LogHandler;
 import com.github.medua7.apostlesbridge.handler.WebSocketHandler;
 import net.minecraftforge.client.ClientCommandHandler;
@@ -25,16 +26,17 @@ public class ApostlesBridge {
         System.out.println();
         LOGGER.info(MODID + " v" + VERSION + " initializing..");
 
+        webSocketHandler = new WebSocketHandler(this);
+
         // REGISTER COMMANDS
         ClientCommandHandler.instance.registerCommand(new ApostlesCommand(this));
 
         //REGISTER EVENTS
         MinecraftForge.EVENT_BUS.register(new PlayerJoinEvent(this));
+        MinecraftForge.EVENT_BUS.register(new PlayerLoggedInEvent(this, webSocketHandler));
 
         // LOAD CONFIG
         Config.loadConfig();
-
-        webSocketHandler = new WebSocketHandler(this);
     }
 
     public WebSocketHandler getWebSocketHandler() {

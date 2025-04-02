@@ -1,9 +1,14 @@
 package com.github.medua7.apostlesbridge.config;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Config {
     public static final String CONFIG_FILE_URL = "config/apostles.json";
@@ -18,6 +23,11 @@ public class Config {
 
     private static int generalMode = 2;
 
+    private static FormattingColors formattingColors = new FormattingColors();
+    private static FormattingNames formattingNames = new FormattingNames();
+
+    private static List<Ignored> ignoredList = new ArrayList<>();
+
     public static void loadConfig() {
         if (!CONFIG_FILE.exists()) {
             saveConfig();
@@ -31,6 +41,44 @@ public class Config {
             guild = json.has("guild") ? json.get("guild").getAsString() : guild;
             token = json.has("token") ? json.get("token").getAsString() : token;
             generalMode = json.has("generalMode") ? json.get("generalMode").getAsInt() : generalMode;
+
+            if (json.has("formatting")) {
+                JsonObject formatting = json.getAsJsonObject("formatting");
+                if (formatting.has("colors")) {
+                    JsonObject formattingColors = formatting.getAsJsonObject("colors");
+                    getFormattingColors().setOriginColor(formattingColors.has("originColor") ? formattingColors.get("originColor").getAsString() : getFormattingColors().getOriginColor());
+                    getFormattingColors().setUserColor(formattingColors.has("userColor") ? formattingColors.get("userColor").getAsString() : getFormattingColors().getUserColor());
+                    getFormattingColors().setMessageColor(formattingColors.has("messageColor") ? formattingColors.get("messageColor").getAsString() : getFormattingColors().getMessageColor());
+                }
+                if (formatting.has("names")) {
+                    JsonObject formattingNames = formatting.getAsJsonObject("names");
+                    getFormattingNames().setBridge(formattingNames.has("bridge") ? formattingNames.get("bridge").getAsString() : getFormattingNames().getBridge());
+                    getFormattingNames().setDiscord(formattingNames.has("discord") ? formattingNames.get("discord").getAsString() : getFormattingNames().getDiscord());
+                    getFormattingNames().setG1(formattingNames.has("g1") ? formattingNames.get("g1").getAsString() : getFormattingNames().getG1());
+                    getFormattingNames().setG2(formattingNames.has("g2") ? formattingNames.get("g2").getAsString() : getFormattingNames().getG2());
+                    getFormattingNames().setG3(formattingNames.has("g3") ? formattingNames.get("g3").getAsString() : getFormattingNames().getG3());
+                }
+            }
+
+            if (json.has("ignored") && json.get("ignored").isJsonArray()) {
+                ignoredList.clear();
+                JsonArray ignoredArray = json.getAsJsonArray("ignored");
+
+                for (JsonElement ignoredArrayElement : ignoredArray) {
+                    if (ignoredArrayElement.isJsonObject()) {
+                        JsonObject ignoredJsonObject = ignoredArrayElement.getAsJsonObject();
+                        String name = ignoredJsonObject.has("name") ? ignoredJsonObject.get("name").getAsString() : "";
+                        IgnoredType type;
+                        try {
+                            type = ignoredJsonObject.has("type") ? IgnoredType.valueOf(ignoredJsonObject.get("type").getAsString()) : IgnoredType.PLAYER;
+                        } catch (IllegalArgumentException e) {
+                            type = IgnoredType.PLAYER;
+                        }
+
+                        ignoredList.add(new Ignored(name, type));
+                    }
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -42,6 +90,32 @@ public class Config {
         json.addProperty("guild", guild);
         json.addProperty("token", token);
         json.addProperty("generalMode", generalMode);
+
+        JsonObject formatting = new JsonObject();
+        JsonObject formattingColors = new JsonObject();
+        formattingColors.addProperty("originColor", getFormattingColors().getOriginColor());
+        formattingColors.addProperty("userColor", getFormattingColors().getUserColor());
+        formattingColors.addProperty("messageColor", getFormattingColors().getMessageColor());
+        formatting.add("colors", formattingColors);
+
+        JsonObject formattingNames = new JsonObject();
+        formattingNames.addProperty("bridge", getFormattingNames().getBridge());
+        formattingNames.addProperty("discord", getFormattingNames().getDiscord());
+        formattingNames.addProperty("g1", getFormattingNames().getG1());
+        formattingNames.addProperty("g2", getFormattingNames().getG2());
+        formattingNames.addProperty("g3", getFormattingNames().getG3());
+        formatting.add("names", formattingNames);
+
+        json.add("formatting", formatting);
+
+        JsonArray ignoredJsonArray = new JsonArray();
+        for (Ignored ignored : ignoredList) {
+            JsonObject ignoredJsonObject = new JsonObject();
+            ignoredJsonObject.addProperty("name", ignored.getName());
+            ignoredJsonObject.addProperty("type", ignored.getType().toString());
+            ignoredJsonArray.add(ignoredJsonObject);
+        }
+        json.add("ignored", ignoredJsonArray);
 
         try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
             GSON.toJson(json, writer);
@@ -89,4 +163,50 @@ public class Config {
     public static void nextGeneralMode() {
         generalMode = (generalMode + 1) % GENERAL_MODES.length;
     }
+
+    public static FormattingNames getFormattingNames() {
+        return formattingNames;
+    }
+
+    public static void setFormattingNames(FormattingNames formattingNames) {
+        Config.formattingNames = formattingNames;
+    }
+
+    public static FormattingColors getFormattingColors() {
+        return formattingColors;
+    }
+
+    public static void setFormattingColors(FormattingColors formattingColors) {
+        Config.formattingColors = formattingColors;
+    }
+
+    public static List<Ignored> getIgnoredList() {
+        return ignoredList;
+    }
+
+    public static List<Ignored> getIgnoredList(IgnoredType type) {
+        return ignoredList.stream().filter(ignored -> { return ignored.getType() == type; }).collect(Collectors.toList());
+    }
+
+    public static List<String> getIgnoredListNames(IgnoredType type) {
+        return getIgnoredList(type).stream().map(Ignored::getName).collect(Collectors.toList());
+    }
+
+    public static void setIgnoredList(List<Ignored> ignoredList) {
+        Config.ignoredList = ignoredList;
+    }
+
+    public static boolean isIgnored(Ignored ignoredToFind) {
+        return Config.ignoredList.stream().anyMatch(ignored -> ignored.getName().equalsIgnoreCase(ignoredToFind.getName()) && ignored.getType() == ignoredToFind.getType());
+    }
+
+    public static void removeIgnored(Ignored ignoredToRemove) {
+        Config.ignoredList.removeIf(ignored -> ignored.getName().equalsIgnoreCase(ignoredToRemove.getName()) && ignored.getType() == ignoredToRemove.getType());
+    }
+
+    public static void addIgnored(Ignored ignored) {
+        Config.ignoredList.add(ignored);
+    }
 }
+
+

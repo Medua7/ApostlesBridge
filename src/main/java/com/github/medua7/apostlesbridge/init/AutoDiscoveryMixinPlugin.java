@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -140,6 +141,8 @@ public class AutoDiscoveryMixinPlugin implements IMixinConfigPlugin {
         try (Stream<Path> classes = Files.walk(classRoot.resolve(getMixinBaseDir()))) {
             classes.map(it -> classRoot.relativize(it).toString())
                     .forEach(this::tryAddMixinClass);
+        } catch (NoSuchFileException e) {
+            // void the error
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -156,6 +159,8 @@ public class AutoDiscoveryMixinPlugin implements IMixinConfigPlugin {
                 tryAddMixinClass(next.getName());
                 zis.closeEntry();
             }
+        } catch (NoSuchFileException e) {
+            // void the error
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -2,6 +2,7 @@ package com.github.medua7.apostlesbridge.config;
 
 import com.github.medua7.apostlesbridge.ApostlesBridge;
 import com.github.medua7.apostlesbridge.handler.MessageHandler;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
@@ -16,6 +17,7 @@ public class ConfigScreen extends GuiScreen {
     private GuiTextField tokenField;
     private GuiTextField guildField;
     private GuiButton generalToggleButton;
+    private GuiButton formattingButton;
 
     private int totalHeight = 0;
     private final int headerHeight = 10;
@@ -27,6 +29,7 @@ public class ConfigScreen extends GuiScreen {
     private final int fieldTextboxHeight = 20;
 
     private final int generalToggleButtonHeight = 20;
+    private final int formattingButtonHeight = 20;
 
     public ConfigScreen(ApostlesBridge apostlesBridge) {
         this.apostlesBridge = apostlesBridge;
@@ -69,6 +72,8 @@ public class ConfigScreen extends GuiScreen {
 
         generalToggleButton = new GuiButton(3, centerX - 100, fieldPosition + fieldSpacingHeight, 200, generalToggleButtonHeight, getModeButtonText());
         buttonList.add(generalToggleButton);
+        formattingButton = new GuiButton(4, 10, this.height - formattingButtonHeight - 10, 80, formattingButtonHeight, "Formatting");
+        buttonList.add(formattingButton);
 
         urlField.setText(Config.getURL());
         tokenField.setText(Config.getToken());
@@ -100,6 +105,8 @@ public class ConfigScreen extends GuiScreen {
         if (button.id == 3) {
             Config.nextGeneralMode();
             generalToggleButton.displayString = getModeButtonText();
+        } else if (button.id == 4) {
+            Minecraft.getMinecraft().displayGuiScreen(new ConfigFormattingScreen(this.apostlesBridge));
         }
     }
 
