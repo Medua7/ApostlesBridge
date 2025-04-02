@@ -185,7 +185,7 @@ public class Config {
     }
 
     public static List<Ignored> getIgnoredList(IgnoredType type) {
-        return ignoredList.stream().filter(ignored -> { return ignored.getType() == type; }).collect(Collectors.toList());
+        return ignoredList.stream().filter(ignored -> ignored.getType() == type).collect(Collectors.toList());
     }
 
     public static List<String> getIgnoredListNames(IgnoredType type) {

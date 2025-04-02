@@ -31,7 +31,7 @@ public class ConfigFormattingScreen extends GuiScreen {
     private final int headerHeight = 10;
     private final int headerMarginBottom = 10;
 
-    private int fieldTotalHeight = 0;
+    private int fieldTotalHeight;
     private final int fieldSpacingHeight = 10;
     private final int fieldTextHeight = 15;
     private final int fieldTextboxHeight = 20;
