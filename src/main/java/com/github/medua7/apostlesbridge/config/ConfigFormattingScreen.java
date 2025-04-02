@@ -147,6 +147,7 @@ public class ConfigFormattingScreen extends GuiScreen {
     @Override
     protected void actionPerformed(GuiButton button) {
         if (button.id == 3) {
+            saveSettings();
             Minecraft.getMinecraft().displayGuiScreen(new ConfigScreen(this.apostlesBridge));
         }
     }
@@ -168,7 +169,7 @@ public class ConfigFormattingScreen extends GuiScreen {
         }
     }
 
-    private void saveAndExit() {
+    private void saveSettings() {
         Config.getFormattingColors().setOriginColor(ConfigUtil.convertToRawColor(originColorField.getText()));
         Config.getFormattingColors().setUserColor(ConfigUtil.convertToRawColor(userColorField.getText()));
         Config.getFormattingColors().setMessageColor(ConfigUtil.convertToRawColor(messageColorField.getText()));
@@ -180,8 +181,13 @@ public class ConfigFormattingScreen extends GuiScreen {
         Config.getFormattingNames().setG3(g3Field.getText());
         Config.saveConfig();
 
-        mc.displayGuiScreen(null);
         MessageHandler.sendMessage("Config has been saved");
+    }
+
+    private void saveAndExit() {
+        saveSettings();
+
+        mc.displayGuiScreen(null);
 
         this.apostlesBridge.getWebSocketHandler().restartWebSocket(true);
     }

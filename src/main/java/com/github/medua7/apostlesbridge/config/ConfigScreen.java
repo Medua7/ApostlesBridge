@@ -106,6 +106,7 @@ public class ConfigScreen extends GuiScreen {
             Config.nextGeneralMode();
             generalToggleButton.displayString = getModeButtonText();
         } else if (button.id == 4) {
+            saveSettings();
             Minecraft.getMinecraft().displayGuiScreen(new ConfigFormattingScreen(this.apostlesBridge));
         }
     }
@@ -125,14 +126,17 @@ public class ConfigScreen extends GuiScreen {
         return "Mode: " + Config.getGeneralModeText();
     }
 
-    private void saveAndExit() {
+    private void saveSettings() {
         Config.setURL(urlField.getText());
         Config.setGuild(guildField.getText());
         Config.setToken(tokenField.getText());
         Config.saveConfig();
 
-        mc.displayGuiScreen(null);
         MessageHandler.sendMessage("Config has been saved");
+    }
+
+    private void saveAndExit() {
+        mc.displayGuiScreen(null);
 
         this.apostlesBridge.getWebSocketHandler().restartWebSocket(true);
     }
